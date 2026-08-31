@@ -118,7 +118,9 @@ if (Test-Path "data\state.sqlite3") {
 # --- 6) 스케줄러 ---
 Step 6 "작업 스케줄러 등록"
 $taskName = "KB공고감시"
-$action = New-ScheduledTaskAction -Execute $pyw -Argument "`"$root\run_watch.py`"" -WorkingDirectory $root
+$ps = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
+$action = New-ScheduledTaskAction -Execute $ps -WorkingDirectory $root `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$root\update_and_run.ps1`""
 $trigger = New-ScheduledTaskTrigger -Daily -At "09:00"
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 10) `

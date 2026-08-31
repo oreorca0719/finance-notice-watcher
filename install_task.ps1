@@ -25,8 +25,10 @@ Write-Host "작업 폴더 : $root"
 Write-Host "파이썬    : $py"
 Write-Host "실행 시각 : 매일 $Time"
 
-$action = New-ScheduledTaskAction -Execute $py `
-    -Argument "`"$root\run_watch.py`"" -WorkingDirectory $root
+# git pull 후 실행하도록 update_and_run.ps1 을 경유합니다.
+$ps = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
+$action = New-ScheduledTaskAction -Execute $ps -WorkingDirectory $root `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$root\update_and_run.ps1`""
 
 $trigger = New-ScheduledTaskTrigger -Daily -At $Time
 
