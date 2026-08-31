@@ -11,10 +11,28 @@ $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Set-Location $root
 
+# 예약 작업은 창을 숨긴 채 돌기 때문에 화면 출력만으로는 나중에 확인할 수 없다.
+# git pull 성공 여부를 사후에 따질 수 있도록 파일에도 남긴다.
+$LogDir  = Join-Path $root "logs"
+$LogFile = Join-Path $LogDir "update.log"
+New-Item -ItemType Directory -Force $LogDir | Out-Null
+
 function Log($msg) {
     $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Write-Host "$ts  $msg"
+    $line = "$ts  $msg"
+    Write-Host $line
+    try { Add-Content -Path $LogFile -Value $line -Encoding UTF8 } catch { }
 }
+
+# 로그 파일이 무한정 커지지 않도록 1MB 넘으면 잘라낸다.
+if ((Test-Path $LogFile) -and ((Get-Item $LogFile).Length -gt 1MB)) {
+    try {
+        $keep = Get-Content $LogFile -Tail 300 -Encoding UTF8
+        Set-Content -Path $LogFile -Value $keep -Encoding UTF8
+    } catch { }
+}
+
+Log "===== 실행 시작 (계정: $env:USERNAME) ====="
 
 # --- 1) 코드 갱신 ---------------------------------------------------------
 $git = (Get-Command git.exe -ErrorAction SilentlyContinue).Source
@@ -70,4 +88,5 @@ Log "감시 실행"
 & $py (Join-Path $root "run_watch.py") @args
 $code = $LASTEXITCODE
 Log "종료코드 $code"
+if ($code -ne 0) { Log "!! 실행이 실패했습니다. logs\watch.log 를 확인하십시오." }
 exit $code
