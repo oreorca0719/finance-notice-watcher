@@ -1,0 +1,61 @@
+name: KB notice watch
+
+# 이 저장소는 사내 서버(192.168.0.110)가 실행 주체입니다.
+# Actions 자동 실행은 중복 발송을 유발하므로 꺼 두었습니다.
+# 클라우드 이중화를 원하면 아래 schedule 주석을 해제하고 Secrets 를 등록하십시오.
+on:
+  # schedule:
+    # 00:07 UTC = 09:07 KST. GitHub Actions 의 schedule 은 정시 보장이 없어
+    # 통상 수 분~수십 분 지연됩니다. 정시성이 중요하면 로컬 스케줄러를 병행하십시오.
+  #   - cron: "7 0 * * *"
+  workflow_dispatch:        # 필요할 때 수동 실행
+
+permissions:
+  contents: write           # 상태 파일 커밋용
+
+concurrency:
+  group: kb-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: 공고 확인 및 메일 발송
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_SECURITY: ${{ secrets.SMTP_SECURITY }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM_NAME: ${{ secrets.SMTP_FROM_NAME }}
+        run: python run_watch.py -v
+
+      - name: 상태 저장 (중복 발송 방지 + 60일 자동 비활성화 방지)
+        if: always()
+        run: |
+          git config user.name  "kb-watch-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f data/state.sqlite3
+          git diff --staged --quiet || git commit -m "chore: 감시 상태 갱신 $(date -u +%Y-%m-%d)"
+          git push
+
+      - name: 실패 로그 보존
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kb-watch-logs
+          path: |
+            logs/
+            data/snapshot_*.html
+          retention-days: 14

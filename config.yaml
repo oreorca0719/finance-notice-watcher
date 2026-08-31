@@ -1,0 +1,200 @@
+# KB국민은행 공고 감시기 설정
+# 이 파일만 고치면 재배포 없이 동작이 바뀝니다. 비밀번호는 .env 에 둡니다.
+
+# ─── 감시 대상 기관 ───────────────────────────────────────────────
+# 기관을 추가하려면 여기에 항목만 늘리면 됩니다. 코드 수정 불필요.
+#   id       : 내부 식별자(중복 판정 키). 한 번 정하면 바꾸지 마십시오.
+#   adapter  : core/adapters/ 에 등록된 파서 이름
+#   enabled  : false 로 두면 조회하지 않습니다(잠시 끌 때 사용)
+sources:
+  - id: kb
+    name: KB국민은행
+    adapter: kb
+    base: "https://omoney.kbstar.com"
+    enabled: true
+    list_pages: 3          # 1페이지=10건. 3이면 30건까지 역추적
+    request_delay: 0.8     # 요청 간격(초). 서버 예의상 0.5 이상 유지
+    timeout: 30
+    warm_path: "/quics?page=oabout"
+    params:
+      page_code: "C018592"
+      board_id: "648"
+      comp_id: "b031439"
+
+  - id: woorifg
+    name: 우리금융그룹
+    adapter: woorifg
+    base: "https://www.woorifg.com"
+    enabled: true
+    list_pages: 2          # 1페이지=10건. 게시 빈도가 낮아 2페이지면 충분
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/kor/main/index.do"
+
+  - id: hana
+    name: 하나은행
+    adapter: hana
+    base: "https://www.kebhana.com"
+    enabled: true
+    list_pages: 3          # 1페이지=10건. 일반 공지가 섞여 있어 여유 있게 확보
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/index.jsp"
+
+filter:
+  # 판별 순서: exclude 에 하나라도 걸리면 즉시 탈락 → 그다음 include 중 하나라도 있으면 통과.
+  # include_keywords 를 비우면 필터가 해제되어 전체 공고가 발송됩니다.
+  #
+  # [1단계 게이트] 이 중 하나도 없으면 '공고' 자체가 아니라고 보고 탈락시킵니다.
+  # 서비스 점검 안내·약관 변경 안내 등이 섞인 게시판(하나은행 새소식) 대응입니다.
+  require_keywords:
+    - 공고
+    - 입찰
+    - 제안
+    - RFP
+    - RFI
+
+  # [2단계 통과] IT/SI 프로젝트성 공고로 보는 단어
+  include_keywords:
+    - 제안요청
+    - 제안 요청
+    - RFP
+    - RFI
+    - 정보제공요청
+    - 사전규격
+    - 구축
+    - 재구축
+    - 고도화
+    - 현대화
+    - 차세대
+    - 개발
+    - 시스템
+    - 솔루션
+    - 소프트웨어
+    - S/W
+    - SW
+    - 프로그램
+    - 플랫폼
+    - 클라우드
+    - 인프라
+    - IT자원
+    - 라이선스
+    - 용역
+    - 컨설팅
+    - 유지보수
+    - 전환
+    - 통합
+    # 하나은행 등이 쓰는 표현 · IT 도메인어 보강
+    - 제안 공고
+    - 제안공고
+    - 제안서
+    - 안정화
+    - 위탁
+    - 아웃소싱
+    - 정보화
+    - 전산
+    - 네트워크
+    - 보안
+    - 데이터
+    - 서버
+    - 스토리지
+    - 백업
+    - PMO
+    - ISP
+    - BPR
+
+  # [탈락] 비IT·비금융 건. include 보다 우선 적용됩니다.
+  exclude_keywords:
+    # 단순 물품 구매·총무
+    - 캘린더
+    - 토너
+    - 소모품
+    - 사무용품
+    - 판촉
+    - 기념품
+    - 사은품
+    - 경품
+    - 상품권
+    - 인쇄물
+    - 테이프
+    - 비품
+    - 가구
+    - 우편
+    - 폐기
+    - 배송
+    # 자산·시설
+    - 부동산
+    - 매각
+    - 임대
+    - 인테리어
+    - 조경
+    - 시설공사
+    - 전기공사
+    - 소방
+    - 청소
+    - 방역
+    - 경비용역
+    - 주차
+    - 차량
+    - 셔틀
+    # 스포츠·후원
+    - 스포츠
+    - 축구
+    - 야구
+    - 농구단
+    - 사격단
+    - 골프
+    - 후원
+    - 스폰서
+    # 광고·홍보·행사 대행
+    - 마케팅대행
+    - 마케팅 대행
+    - 광고대행
+    - 광고 대행
+    - 홍보대행
+    - 홍보 대행
+    - 행사대행
+    - 행사 대행
+    - 이벤트대행
+    - 공연
+    - 전시회
+    - 촬영
+    - 영상제작
+    # 복리후생·서비스
+    - 급식
+    - 케이터링
+    - 다과
+    - 카페
+    - 라운지
+    - 컨시어지
+    - 헬스케어
+    - 연수
+    - 여행
+    - 숙박
+    - 세탁
+    - 의전
+
+mail:
+  recipients:
+    - "bjkim@pron.co.kr"
+  # 여러 명으로 늘릴 때는 위 목록에 줄만 추가하면 됩니다.
+  #   - "hong@pron.co.kr"
+  #   - "kim@pron.co.kr"
+  # 관리자 주소. 아래 두 가지는 일반 수신자에게 가지 않고 여기로만 발송됩니다.
+  #   · 장애 경보 (조회 실패 / 구조 변경 / 스케줄러 정지 의심)
+  #   · 주간 정상 동작 보고 (heartbeat)
+  # 비워두면 recipients 전원에게 발송되므로, 관리자만 받으려면 반드시 채워두십시오.
+  alert_recipients:
+    - "bjkim@pron.co.kr"
+  subject_prefix: "[KB공고]"
+  attach_pdf: true           # 공고 PDF 원본을 메일에 첨부
+  max_attach_mb: 20          # 총 첨부 상한(초과분은 링크만 안내)
+  send_when_empty: true      # 신규 공고가 없어도 '정상 동작 보고'를 보낼지.
+                             # true = 매일 발송(관리자에게만). 시스템 생존 확인용.
+  heartbeat_weekday: 0       # send_when_empty 가 false 일 때만 의미 있음.
+                             # 해당 요일에만 생존 보고 발송(0=월, -1=사용 안 함)
+
+runtime:
+  consecutive_failure_alert: 2   # 연속 N회 실패 시 경보 메일
+  stale_hours_alert: 30          # 마지막 성공이 N시간을 넘기면 경보
+  keep_html_snapshot: true       # 파싱 실패 시 원본 HTML 보존(구조 변경 분석용)

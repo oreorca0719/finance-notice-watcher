@@ -1,0 +1,197 @@
+# 금융권 신규 프로젝트 공고 자동 알림
+
+금융사 공고 게시판을 하루 1회 확인해, **새로 올라온 IT 프로젝트 공고만**
+골라 **여러 담당자에게 일괄 메일 발송**하는 독립 실행 시스템입니다.
+Claude 실행 여부와 무관하게 동작합니다.
+
+---
+
+## 1. 5분 설치
+
+### (1) 발송 계정 설정
+
+```bash
+copy .env.example .env
+```
+
+발신은 **@pron.co.kr (후이즈웍스)** 입니다. `.env` 에서 채울 것은 `SMTP_PASSWORD` 한 줄뿐이고,
+나머지 값은 실측으로 확인해 미리 채워 두었습니다.
+
+| 항목 | 값 | 확인 방법 |
+|---|---|---|
+| SMTP 서버 | `smtp.whoisworks.com` | pron.co.kr MX → `aspmx.whoisworks.com` |
+| 포트 | `587` (STARTTLS) | 465는 닫혀 있음을 실측 확인 |
+| 인증 | LOGIN / PLAIN | EHLO 응답으로 확인 |
+| 계정 | `bjkim@pron.co.kr` | — |
+
+> **알려진 서버 이슈 (해결 완료)**
+> 후이즈웍스 SMTP는 Diffie-Hellman 파라미터가 1024비트라 Python 3.10+ 기본 보안수준에서
+> `DH_KEY_TOO_SMALL` 오류로 TLS 협상이 거부됩니다. `mailer.py` 가 이를 감지해
+> 보안수준을 낮춰 자동 재연결합니다. TLS 암호화 자체는 유지되며,
+> 실측 결과 `TLSv1.2 / DHE-RSA-AES256-GCM-SHA384` 로 연결됩니다.
+
+### (2) 수신자 등록
+
+`recipients.txt` 에 한 줄에 한 명씩 적습니다. 이 파일만 고치면 됩니다.
+
+```
+김부장 <kimbj@pron.co.kr>
+hong@pron.co.kr
+```
+
+### (3) 발송 경로 점검
+
+```bash
+python run_watch.py --test-mail
+```
+
+테스트 메일이 도착하면 발송 경로가 정상입니다.
+
+### (4) 기준선 등록
+
+```bash
+python run_watch.py --seed
+```
+
+현재 게시판에 올라와 있는 공고를 "이미 본 것"으로 표시합니다.
+**이 단계를 건너뛰면 첫 실행 때 과거 공고가 한꺼번에 발송됩니다.**
+
+### (5) 스케줄러 등록
+
+```powershell
+powershell -ExecutionPolicy Bypass -File install_task.ps1
+```
+
+매일 09:00 자동 실행됩니다. 예약 시각에 PC가 꺼져 있었다면 부팅 직후 따라잡아 실행합니다.
+
+---
+
+## 2. 실행 명령
+
+| 명령 | 동작 |
+|---|---|
+| `python run_watch.py` | 정상 실행 (신규 감지 → 메일 발송) |
+| `python run_watch.py --dry-run` | 메일 없이 감지 결과만 확인 |
+| `python run_watch.py --seed` | 현재 목록을 기준선으로 등록 |
+| `python run_watch.py --force-mail` | 최초 실행이어도 즉시 발송 (시연용) |
+| `python run_watch.py --test-mail` | SMTP 점검용 테스트 메일 |
+
+---
+
+## 3. 감시 대상 기관
+
+`config.yaml` 의 `sources` 목록으로 관리합니다. 기관을 껐다 켜려면 `enabled` 만 바꾸면 됩니다.
+
+| id | 기관 | 수집 전략 | 첨부 |
+|---|---|---|---|
+| `kb` | KB국민은행 | http-plain | POST 폼 (PDF) |
+| `woorifg` | 우리금융그룹 | **http-legacy-tls** (구형 TLS 서버) | GET 링크 (HWP) |
+| `hana` | 하나은행 | http-plain | GET 링크 (PDF) |
+
+**기관 추가 방법**
+1. `core/adapters/<기관>.py` 에 `BaseAdapter` 상속 클래스 작성
+2. `core/adapters/__init__.py` 의 `REGISTRY` 에 한 줄 등록
+3. `config.yaml` 의 `sources` 에 항목 추가
+
+`watcher.py` 등 다른 모듈은 건드리지 않습니다.
+
+## 3-1. 무엇을 "프로젝트 공고"로 보는가
+
+`config.yaml` 의 `filter` 가 3단계로 판정합니다.
+
+| 단계 | 동작 |
+|---|---|
+| 1. `require_keywords` | 공고/입찰/제안/RFP/RFI 중 하나도 없으면 탈락. 서비스 점검 안내 등을 걸러냄 |
+| 2. `exclude_keywords` | 비IT·비금융 단어가 하나라도 있으면 탈락 |
+| 3. `include_keywords` | IT/SI 단어가 하나라도 있으면 통과 |
+
+3개 기관 실제 공고 80건으로 검증한 결과 **37건 통과 / 43건 제외** 입니다.
+
+| | 예시 |
+|---|---|
+| 통과 | 코어뱅킹현대화 제안요청, NDR 재구축, AI 거버넌스 수립 전문용역, IBIS 안정화 사업 제안 공고, DR 멀티데이터센터 컨설팅 |
+| 제외 | 소유부동산 매각, 토너드럼 구매, 축구 마케팅대행사, 농구단 운영대행, 서비스 일시중단 안내, 주주총회 소집공고 |
+
+## 4. "조회가 갑자기 막히면 안 된다"에 대한 설계
+
+### 수집 전략 5단계 자동 강등
+
+한 전략이 실패하면 다음 전략으로 내려갑니다. 어느 단계에서 성공했는지 로그에 남습니다.
+
+1. `http-plain` — 표준 요청 (평시 경로)
+2. `http-retry` — 재시도
+3. `http-warmed` — 메인 페이지 선방문으로 쿠키 확보 후 조회 + UA 교체
+4. `http-alt-url` — 다른 형태의 URL 파라미터로 우회
+5. `browser-headless` — 실제 Chrome 엔진으로 조회 (JS 검증 도입 대응)
+
+### 파싱 2단계 자동 강등
+
+- `strict` — 현재 게시판 HTML 구조 기준 정밀 파싱
+- `loose` — 구조가 개편되어도 `articleId` 링크와 날짜만 남아 있으면 복구
+
+> 실제 검증: 테이블 마크업을 훼손시킨 시뮬레이션에서 `loose` 파서가 10건을 정상 복구했습니다.
+
+### 조용히 죽지 않게 하는 장치
+
+| 상황 | 동작 |
+|---|---|
+| 조회가 연속 2회 실패 | 경보 메일 발송 |
+| 공고 파싱 0건 (구조 전면 개편) | 원본 HTML을 `data/` 에 보존 + 경보 메일 |
+| 마지막 성공 후 30시간 경과 | 스케줄러 정지 의심 → 경보 메일 |
+| 메일 일괄 발송 실패 | 수신자별 개별 발송으로 자동 강등 |
+| 발송 도중 프로세스 중단 | '미발송'으로 기록되어 다음 실행에서 자동 재시도 |
+
+### 한계 (정직하게)
+
+KB가 **로그인 요구·캡차·WAF** 를 도입하면 무인 조회는 어떤 방법으로도 불가능해집니다.
+이 시스템은 그 경우 **우회를 시도하지 않고 즉시 경보 메일을 보냅니다.**
+"절대 막히지 않는다"가 아니라 **"막히면 반드시 즉시 알게 된다"** 가 이 설계의 보장 범위입니다.
+
+---
+
+## 5. 이중화 (선택)
+
+정시성과 가용성을 더 올리려면 GitHub Actions를 병행합니다.
+`.github/workflows/kb-watch.yml` 가 준비되어 있습니다.
+
+- 저장소 Settings → Secrets → `SMTP_HOST` `SMTP_PORT` `SMTP_SECURITY` `SMTP_USER` `SMTP_PASSWORD` 등록
+- 매 실행마다 `data/state.sqlite3` 를 커밋하므로 **60일 무활동 자동 비활성화**를 회피합니다
+
+**주의할 점 3가지**
+
+1. GitHub Actions의 `schedule` 은 정시 보장이 없습니다 (통상 5~30분 지연, 드물게 누락)
+2. 러너가 미국 IP라 국내 금융권 사이트 응답이 다를 수 있습니다 — 실제로 돌려봐야 확인됩니다
+3. 로컬 스케줄러와 병행할 경우 상태 파일을 공유해야 중복 발송이 없습니다
+
+---
+
+## 6. 구조
+
+```
+kb_notice_watcher/
+├─ config.yaml          운영 설정 (주기·필터·발송 옵션)
+├─ recipients.txt       수신자 명단  ← 이 파일만 고치면 됨
+├─ .env                 SMTP 자격증명 (git 제외)
+├─ run_watch.py         엔트리포인트
+├─ install_task.ps1     Windows 작업 스케줄러 등록
+├─ core/
+│   ├─ settings.py      설정 로딩
+│   ├─ fetcher.py       5단계 수집 전략
+│   ├─ parser.py        2단계 파싱 전략
+│   ├─ store.py         SQLite 상태 (중복 발송 방지·실패 추적)
+│   ├─ render.py        메일 본문 생성
+│   ├─ mailer.py        다중 수신자 SMTP 발송
+│   └─ watcher.py       실행 오케스트레이션
+├─ data/state.sqlite3   본 공고 + 실행 이력
+└─ logs/watch.log       회전 로그 (2MB × 5개)
+```
+
+## 7. 점검
+
+```bash
+# 최근 실행 이력
+python -c "import sqlite3;[print(r) for r in sqlite3.connect('data/state.sqlite3').execute('SELECT started_at,ok,strategy,parser,scanned,new_count,error FROM run_log ORDER BY id DESC LIMIT 10')]"
+
+# 로그
+type logs\watch.log
+```

@@ -1,0 +1,18 @@
+# 자격증명 — 절대 커밋 금지
+.env
+*.pem
+*.key
+
+# 실행 산출물 (서버가 자체 생성·수정하므로 추적하지 않는다.
+# 추적하면 서버의 git pull 때마다 충돌이 난다)
+data/*
+!data/.gitkeep
+logs/
+__pycache__/
+*.pyc
+
+# 작업 중 산출물
+classify_report.txt
+dedup_test.txt
+filter_report.txt
+*.html
