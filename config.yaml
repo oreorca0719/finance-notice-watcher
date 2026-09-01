@@ -186,7 +186,7 @@ mail:
   # 비워두면 recipients 전원에게 발송되므로, 관리자만 받으려면 반드시 채워두십시오.
   alert_recipients:
     - "bjkim@pron.co.kr"
-  subject_prefix: "[KB공고]"
+  subject_prefix: "[금융공고]"   # 감시 기관이 늘어 KB 전용 표기를 걷어냄
   attach_pdf: true           # 공고 PDF 원본을 메일에 첨부
   max_attach_mb: 20          # 총 첨부 상한(초과분은 링크만 안내)
   send_when_empty: true      # 신규 공고가 없어도 '정상 동작 보고'를 보낼지.
