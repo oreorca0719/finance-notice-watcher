@@ -101,6 +101,18 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 
 ---
 
+## 2-1. 메일에 무엇을 담는가
+
+`config.yaml` 의 `mail.attach_pdf` 로 정합니다.
+
+| 설정 | 동작 |
+|---|---|
+| `false` (현재) | **원문 링크 + 첨부 파일명만.** 파일을 내려받지 않아 실행이 빠르고 용량 제한 문제가 없습니다 |
+| `true` | 공고 PDF/HWP 원본을 메일에 첨부 (총 `max_attach_mb` 상한) |
+
+첨부를 끄더라도 **어떤 문서가 붙어 있는지 파일명은 그대로 표시**되므로,
+필요한 공고만 링크를 눌러 받으면 됩니다.
+
 ## 3. 감시 대상 기관
 
 `config.yaml` 의 `sources` 목록으로 관리합니다. 기관을 껐다 켜려면 `enabled` 만 바꾸면 됩니다.

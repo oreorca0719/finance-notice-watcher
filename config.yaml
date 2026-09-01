@@ -316,7 +316,10 @@ mail:
   alert_recipients:
     - "bjkim@pron.co.kr"
   subject_prefix: "[금융공고]"   # 감시 기관이 늘어 KB 전용 표기를 걷어냄
-  attach_pdf: true           # 공고 PDF 원본을 메일에 첨부
+  # false = 첨부파일을 내려받지 않고 메일에 링크만 담습니다.
+  # 첨부 '파일명'은 그대로 표시되므로 어떤 문서가 있는지는 알 수 있습니다.
+  # 끄면 실행 시간이 크게 줄고 메일 용량 제한 문제도 사라집니다.
+  attach_pdf: false
   max_attach_mb: 20          # 총 첨부 상한(초과분은 링크만 안내)
   send_when_empty: true      # 신규 공고가 없어도 '정상 동작 보고'를 보낼지.
                              # true = 매일 발송(관리자에게만). 시스템 생존 확인용.
