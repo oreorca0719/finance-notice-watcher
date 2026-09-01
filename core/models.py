@@ -18,6 +18,8 @@ class Attachment(BaseModel):
     url: Optional[str] = None
     action: Optional[str] = None
     form: Dict[str, str] = Field(default_factory=dict)
+    #: 일부 사이트는 상세 페이지를 Referer 로 요구한다.
+    referer: Optional[str] = None
 
     def as_form(self) -> Dict[str, str]:
         return dict(self.form)

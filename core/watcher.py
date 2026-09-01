@@ -156,7 +156,8 @@ class Watcher:
 
             scanned = res.new_notices
             known = self.store.known_keys(spec.id)
-            fresh = [n for n in scanned if n.key not in known and self.s.filter.accepts(n.title)]
+            fresh = [n for n in scanned if n.key not in known
+                     and self.s.filter.accepts(n.title, spec.skip_require)]
             fresh.sort(key=lambda n: (n.posted_at, n.seq))
 
             # 신규 기관은 과거 공고를 쏟아내지 않도록 기준선만 잡는다.

@@ -215,30 +215,44 @@ class Fetcher:
                 time.sleep(1.2)
         raise FetchError("모든 수집 전략 실패\n" + "\n".join(errors))
 
-    def get_bytes(self, url: str) -> bytes:
+    def get_bytes(self, url: str, referer: Optional[str] = None) -> bytes:
+        """첨부 다운로드.
+
+        기본 세션을 유지한 채 재시도한다. legacy 세션으로의 전환은
+        SSL 오류일 때만 한다 — legacy 세션은 쿠키를 공유하지 않으므로,
+        농협처럼 세션 쿠키가 있어야 파일을 주는 사이트에서는
+        무조건 전환하면 실패가 확정되고 진짜 원인까지 가려진다.
+        """
         last: Optional[Exception] = None
-        for i in range(3):
+        use_legacy = False
+        headers = {"Referer": referer} if referer else None
+        for _ in range(3):
             try:
-                sess = self.legacy_session() if i else self.session()
-                r = sess.get(url, timeout=self.timeout)
+                sess = self.legacy_session() if use_legacy else self.session()
+                r = sess.get(url, timeout=self.timeout, headers=headers)
                 r.raise_for_status()
                 time.sleep(self.delay)
                 return r.content
             except Exception as exc:  # noqa: BLE001
                 last = exc
+                if isinstance(exc, requests.exceptions.SSLError):
+                    use_legacy = True
                 time.sleep(1.5)
         raise FetchError(f"파일 다운로드 실패: {last}")
 
     def post(self, url: str, form: dict) -> bytes:
         last: Optional[Exception] = None
-        for i in range(3):
+        use_legacy = False
+        for _ in range(3):
             try:
-                sess = self.legacy_session() if i else self.session()
+                sess = self.legacy_session() if use_legacy else self.session()
                 r = sess.post(url, data=form, timeout=self.timeout)
                 r.raise_for_status()
                 time.sleep(self.delay)
                 return r.content
             except Exception as exc:  # noqa: BLE001
                 last = exc
+                if isinstance(exc, requests.exceptions.SSLError):
+                    use_legacy = True
                 time.sleep(1.5)
         raise FetchError(f"첨부 다운로드 실패: {last}")

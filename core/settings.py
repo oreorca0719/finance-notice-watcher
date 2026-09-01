@@ -29,6 +29,9 @@ class SourceSpec(BaseModel):
     request_delay: float = 0.8
     timeout: int = 30
     warm_path: str = "/"
+    #: 게시판 자체가 입찰공고 전용이면 require 게이트를 건너뛴다.
+    #: 농협 e홍보센터처럼 제목에 '공고'가 없는 입찰 건이 섞인 경우 필요하다.
+    skip_require: bool = False
     params: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -46,8 +49,8 @@ class FilterCfg(BaseModel):
     include_keywords: List[str] = Field(default_factory=list)
     exclude_keywords: List[str] = Field(default_factory=list)
 
-    def accepts(self, title: str) -> bool:
-        if self.require_keywords and not any(
+    def accepts(self, title: str, skip_require: bool = False) -> bool:
+        if not skip_require and self.require_keywords and not any(
                 k in title for k in self.require_keywords if k):
             return False
         if any(k for k in self.exclude_keywords if k and k in title):
@@ -56,9 +59,10 @@ class FilterCfg(BaseModel):
             return True
         return any(k in title for k in self.include_keywords if k)
 
-    def reason(self, title: str) -> tuple:
+    def reason(self, title: str, skip_require: bool = False) -> tuple:
         """(통과여부, 사유) — 진단·리포트용."""
-        if self.require_keywords and not any(k in title for k in self.require_keywords if k):
+        if not skip_require and self.require_keywords and not any(
+                k in title for k in self.require_keywords if k):
             return False, "공고성 아님"
         ex = [k for k in self.exclude_keywords if k and k in title]
         if ex:

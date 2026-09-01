@@ -6,12 +6,14 @@ from typing import Dict, Type
 from core.adapters.base import BaseAdapter
 from core.adapters.hana import HanaAdapter
 from core.adapters.kb import KbAdapter
+from core.adapters.nonghyup import NonghyupAdapter
 from core.adapters.woorifg import WooriFgAdapter
 
 REGISTRY: Dict[str, Type[BaseAdapter]] = {
     KbAdapter.adapter_id: KbAdapter,
     WooriFgAdapter.adapter_id: WooriFgAdapter,
     HanaAdapter.adapter_id: HanaAdapter,
+    NonghyupAdapter.adapter_id: NonghyupAdapter,
 }
 
 

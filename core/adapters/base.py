@@ -65,7 +65,7 @@ class BaseAdapter:
         if attachment.action:
             return self.fetcher.post(self.spec.base + attachment.action, attachment.as_form())
         if attachment.url:
-            return self.fetcher.get_bytes(attachment.url)
+            return self.fetcher.get_bytes(attachment.url, referer=attachment.referer)
         raise RuntimeError(f"다운로드 경로가 없는 첨부: {attachment.display_name}")
 
     # ------------------------------------------------------------------

@@ -72,7 +72,8 @@ def main() -> int:
                 continue
             known = watcher.store.known_keys(spec.id)
             fresh = [n for n in res.new_notices
-                     if n.key not in known and settings.filter.accepts(n.title)]
+                     if n.key not in known
+                     and settings.filter.accepts(n.title, spec.skip_require)]
             total_new += len(fresh)
             log.info("[%s] 조회 %d건 / 전체 %s건 / 신규 %d건 (전략=%s, 파서=%s)",
                      spec.name, res.scanned, res.total, len(fresh), res.strategy, res.parser)

@@ -31,6 +31,17 @@ sources:
     timeout: 30
     warm_path: "/kor/main/index.do"
 
+  - id: nonghyup
+    name: 농협
+    adapter: nonghyup
+    base: "https://www.nonghyup.com"
+    enabled: true
+    list_pages: 3          # 1페이지=10건. 은행 IT 사업과 시설공사가 섞여 있어 여유 확보
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/ecenter/bid/bidList.do"
+    skip_require: true     # 게시판 자체가 입찰공고 전용. 제목에 '공고'가 없는 건이 많다
+
   - id: hana
     name: 하나은행
     adapter: hana
@@ -102,6 +113,11 @@ filter:
     - PMO
     - ISP
     - BPR
+    - VDI
+    - 포털
+    - 포탈
+    - 업그레이드
+    - 방화벽
 
   # [탈락] 비IT·비금융 건. include 보다 우선 적용됩니다.
   exclude_keywords:
@@ -173,6 +189,25 @@ filter:
     - 숙박
     - 세탁
     - 의전
+    # 농협 게시판에 섞여 있는 시설공사·농축산 사업
+    - 신축
+    - 증축
+    - 개보수
+    - 공판장
+    - 축산물
+    - 시상식
+    - 도정
+    - 비료
+    - 사료
+    - 로컬푸드
+    - 직매장
+    - 체험공간
+    - 홍보물
+    - 선거
+    - 대관
+    - 전기설비
+    - 증설공사
+    - 소방설비
 
 mail:
   recipients:

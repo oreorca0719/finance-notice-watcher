@@ -109,7 +109,15 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 |---|---|---|---|
 | `kb` | KB국민은행 | http-plain | POST 폼 (PDF) |
 | `woorifg` | 우리금융그룹 | **http-legacy-tls** (구형 TLS 서버) | GET 링크 (HWP) |
+| `nonghyup` | 농협 (은행·증권·손보·경제지주) | http-plain | GET 링크 (ZIP) — **상세 재조회 필요** |
 | `hana` | 하나은행 | http-plain | GET 링크 (PDF) |
+
+**기관별 주의사항**
+
+- **농협**: 서버가 '해당 공고 상세를 방금 조회한 세션'에만 첨부를 내줍니다. 다른 페이지를 거치면 404가 되므로
+  어댑터가 다운로드 직전에 상세를 다시 엽니다. 또한 게시판 자체가 입찰공고 전용이라
+  `skip_require: true` 로 1단계 게이트를 건너뜁니다(제목에 '공고'가 없는 입찰 건이 있음).
+- **우리금융그룹**: legacy renegotiation 미지원 서버라 최신 OpenSSL 환경에서는 전용 TLS 어댑터가 필요합니다.
 
 **기관 추가 방법**
 1. `core/adapters/<기관>.py` 에 `BaseAdapter` 상속 클래스 작성
@@ -128,7 +136,7 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 | 2. `exclude_keywords` | 비IT·비금융 단어가 하나라도 있으면 탈락 |
 | 3. `include_keywords` | IT/SI 단어가 하나라도 있으면 통과 |
 
-3개 기관 실제 공고 80건으로 검증한 결과 **37건 통과 / 43건 제외** 입니다.
+4개 기관 실제 공고 110건으로 검증한 결과 **59건 통과 / 51건 제외** 입니다.
 
 | | 예시 |
 |---|---|
