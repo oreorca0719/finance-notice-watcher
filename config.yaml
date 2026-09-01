@@ -42,6 +42,84 @@ sources:
     warm_path: "/ecenter/bid/bidList.do"
     skip_require: true     # 게시판 자체가 입찰공고 전용. 제목에 '공고'가 없는 건이 많다
 
+  - id: nhit
+    name: 농협정보시스템
+    adapter: nhit
+    base: "https://www.nonghyupit.com"
+    enabled: true
+    list_pages: 2
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/nonghyupit/4485/subview.do"
+    skip_require: true     # 입찰공고 전용 게시판
+    params:
+      list_path: "/nonghyupit/4485/subview.do"
+      site_key: "nonghyupit"
+      menu_key: "675"
+
+  - id: nhfn
+    name: NH농협금융지주
+    adapter: nhcms
+    base: "https://www.nhfngroup.com"
+    enabled: true
+    list_pages: 2
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/user/indexSub.do?codyMenuSeq=1102093359&siteId=nhfngroup"
+    skip_require: true
+    params:
+      site_id: "nhfngroup"
+      board_id: "5177627"
+      menu_seq: "1102093359"
+
+  - id: nhab
+    name: 농협경제지주
+    adapter: nhcms
+    base: "http://www.nhabgroup.com"
+    enabled: true
+    list_pages: 2
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/user/indexSub.do?codyMenuSeq=602309274&siteId=nhabgroup"
+    skip_require: true
+    params:
+      site_id: "nhabgroup"
+      board_id: "5121866"
+      menu_seq: "602309274"
+
+  - id: shinhanfund
+    name: 신한자산운용
+    adapter: simpleboard
+    base: "https://www.shinhanfund.com"
+    enabled: true
+    list_pages: 1          # 페이징 파라미터가 동작하지 않아 1페이지만 조회
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/ko/pc/board/notice"
+    params:
+      variant: "shinhanfund"
+      list_path: "/ko/pc/board/notice"
+      view_path: "/ko/pc/board/noticeView?no="
+      page_param: "page"
+      marker: "tb-subj"
+
+  - id: woorisb
+    name: 우리금융저축은행
+    adapter: simpleboard
+    base: "https://www.woorisavingsbank.com"
+    enabled: true
+    list_pages: 2
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/intro-notice/list.do?lgrpCd=INTRO-NOTICE"
+    params:
+      variant: "woorisb"
+      attachments: false   # fileSn 만 노출되어 다운로드 경로 확정 불가 → 파일명만 표시
+      list_path: "/intro-notice/list.do?lgrpCd=INTRO-NOTICE"
+      view_path: "/intro-notice/view.do?blcSn="
+      page_param: "page"
+      marker: "board__item"
+
   - id: hana
     name: 하나은행
     adapter: hana
@@ -100,7 +178,7 @@ filter:
     - 제안공고
     - 제안서
     - 안정화
-    - 위탁
+    - 위탁운영
     - 아웃소싱
     - 정보화
     - 전산
@@ -208,6 +286,22 @@ filter:
     - 전기설비
     - 증설공사
     - 소방설비
+    # 농협 계열 게시판의 농축산·유통 사업
+    - 하나로마트
+    - 가축
+    - 분뇨
+    - 종돈
+    - 사양관리
+    - 축산관련
+    - 영농
+    # 판촉물·사무공간
+    - 달력
+    - 수첩
+    - 사무공간
+    # 자산운용사 선정 (신한자산운용 게시판 대부분)
+    - 위탁운용
+    - 출자사업
+    - 운용사
 
 mail:
   recipients:

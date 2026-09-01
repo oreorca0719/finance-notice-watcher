@@ -107,24 +107,36 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 
 | id | 기관 | 수집 전략 | 첨부 |
 |---|---|---|---|
-| `kb` | KB국민은행 | http-plain | POST 폼 (PDF) |
-| `woorifg` | 우리금융그룹 | **http-legacy-tls** (구형 TLS 서버) | GET 링크 (HWP) |
-| `nonghyup` | 농협 (은행·증권·손보·경제지주) | http-plain | GET 링크 (ZIP) — **상세 재조회 필요** |
-| `hana` | 하나은행 | http-plain | GET 링크 (PDF) |
-
-**기관별 주의사항**
-
-- **농협**: 서버가 '해당 공고 상세를 방금 조회한 세션'에만 첨부를 내줍니다. 다른 페이지를 거치면 404가 되므로
-  어댑터가 다운로드 직전에 상세를 다시 엽니다. 또한 게시판 자체가 입찰공고 전용이라
-  `skip_require: true` 로 1단계 게이트를 건너뜁니다(제목에 '공고'가 없는 입찰 건이 있음).
-- **우리금융그룹**: legacy renegotiation 미지원 서버라 최신 OpenSSL 환경에서는 전용 TLS 어댑터가 필요합니다.
+| id | 기관 | 어댑터 | 첨부 |
+|---|---|---|---|
+| `kb` | KB국민은행 | `kb` | POST 폼 (PDF) |
+| `nonghyup` | 농협 (은행·증권·손보·경제지주) | `nonghyup` | GET (ZIP) — 상세 재조회 필요 |
+| `nhit` | 농협정보시스템 | `nhit` | GET |
+| `nhfn` | NH농협금융지주 | `nhcms` | GET (HWP) |
+| `nhab` | 농협경제지주 | `nhcms` | GET (HWP/PDF) |
+| `hana` | 하나은행 | `hana` | GET (PDF) |
+| `woorifg` | 우리금융그룹 | `woorifg` | GET (HWP) — 구형 TLS |
+| `woorisb` | 우리금융저축은행 | `simpleboard` | 파일명만 (경로 확정 불가) |
+| `shinhanfund` | 신한자산운용 | `simpleboard` | GET |
 
 **기관 추가 방법**
+
 1. `core/adapters/<기관>.py` 에 `BaseAdapter` 상속 클래스 작성
 2. `core/adapters/__init__.py` 의 `REGISTRY` 에 한 줄 등록
 3. `config.yaml` 의 `sources` 에 항목 추가
 
-`watcher.py` 등 다른 모듈은 건드리지 않습니다.
+같은 CMS를 쓰는 기관이면 어댑터를 새로 만들지 않고 `params` 만 달리해 추가합니다
+(`nhcms` 가 NH농협금융지주·농협경제지주를 함께 처리합니다).
+
+**기관별 주의사항**
+
+- **농협**: '해당 공고 상세를 방금 조회한 세션'에만 첨부를 내줍니다. 어댑터가 다운로드 직전 상세를 다시 엽니다.
+- **우리금융그룹**: legacy renegotiation 미지원 서버라 전용 TLS 어댑터가 필요합니다.
+- **우리금융저축은행**: 첨부가 `fileSn` 만 노출해 다운로드 경로를 확정할 수 없습니다.
+  `params.attachments: false` 로 두어 **파일명만 메일에 표시**하고 다운로드는 건너뜁니다.
+- **신한자산운용**: 페이징 파라미터가 동작하지 않아 `list_pages: 1` 입니다.
+  게시판 대부분이 펀드 위탁운용사 공고라 IT 건은 드뭅니다.
+- **skip_require**: 게시판 자체가 입찰공고 전용인 기관(농협 계열)은 1단계 게이트를 건너뜁니다.
 
 ## 3-1. 무엇을 "프로젝트 공고"로 보는가
 
@@ -136,7 +148,7 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 | 2. `exclude_keywords` | 비IT·비금융 단어가 하나라도 있으면 탈락 |
 | 3. `include_keywords` | IT/SI 단어가 하나라도 있으면 통과 |
 
-4개 기관 실제 공고 110건으로 검증한 결과 **59건 통과 / 51건 제외** 입니다.
+9개 기관 실제 공고 220건으로 검증한 결과 **112건 통과** 입니다.
 
 | | 예시 |
 |---|---|

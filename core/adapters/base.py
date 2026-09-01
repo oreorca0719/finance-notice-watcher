@@ -58,7 +58,12 @@ class BaseAdapter:
         return True
 
     def supports_attachment(self) -> bool:
-        return True
+        """다운로드 경로를 확정할 수 없는 기관은 params.attachments 를 false 로 둔다.
+
+        그 경우에도 첨부 '파일명'은 메일에 표시된다. 원문 링크로 받으면 되므로
+        알림 기능 자체는 온전하고, 매 실행마다 실패 로그가 쌓이는 것을 막는다.
+        """
+        return bool(self.spec.params.get("attachments", True))
 
     def download(self, attachment: Attachment) -> bytes:
         """첨부 바이너리. POST 폼 방식과 GET URL 방식을 모두 지원한다."""
@@ -92,7 +97,18 @@ class BaseAdapter:
                 n.source_id = self.spec.id
                 n.source_name = self.spec.name
             found.extend(items)
-        return found, total
+
+        # 페이징 파라미터를 무시하고 1페이지를 반복해서 주는 사이트가 있다.
+        # 그대로 두면 같은 공고가 중복 집계되므로 여기서 걸러낸다.
+        uniq, seen = [], set()
+        for n in found:
+            if n.article_id in seen:
+                continue
+            seen.add(n.article_id)
+            uniq.append(n)
+        if len(uniq) < len(found):
+            log.info("[%s] 페이지 간 중복 %d건 제거", self.spec.id, len(found) - len(uniq))
+        return uniq, total
 
     def enrich(self, notices: List[Notice]) -> None:
         if not self.supports_detail():
