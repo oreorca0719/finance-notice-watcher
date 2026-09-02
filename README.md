@@ -55,12 +55,29 @@ copy .env.example .env
 
 ### (2) 수신자 등록
 
-`recipients.txt` 에 한 줄에 한 명씩 적습니다. 이 파일만 고치면 됩니다.
+```bash
+copy recipients.example.txt recipients.txt
+```
+
+`recipients.txt` 에 한 줄에 한 명씩 적습니다. **이 파일만 고치면 됩니다.**
 
 ```
 김부장 <kimbj@pron.co.kr>
 hong@pron.co.kr
+lee@pron.co.kr
 ```
+
+- `#` 로 시작하는 줄과 빈 줄은 무시됩니다
+- `이름 <주소>` 형식과 주소만 적는 형식 모두 가능합니다
+- 중복은 자동 제거됩니다
+- 저장만 하면 다음 실행부터 적용됩니다. 재시작·재등록 불필요
+
+> **`recipients.txt` 는 git 추적 대상이 아닙니다.**
+> 서버에서 편집해도 `git pull` 이 깨지지 않고, 코드를 갱신해도 명단이 덮어써지지 않습니다.
+> `.env` 와 같은 취급입니다.
+
+> **최소 1명은 `config.yaml` 의 `mail.recipients` 에도 남겨 두십시오.**
+> `recipients.txt` 가 없거나 비어도 발송이 0명이 되지 않게 하는 안전장치입니다.
 
 ### (3) 발송 경로 점검
 
