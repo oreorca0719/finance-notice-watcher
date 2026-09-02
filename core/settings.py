@@ -127,7 +127,7 @@ class SmtpCfg(BaseModel):
     security: str = "starttls"
     user: str = ""
     password: str = ""
-    from_name: str = "금융권 공고 알리미"
+    from_name: str = "Project Searcher"
 
     @property
     def configured(self) -> bool:
@@ -154,7 +154,7 @@ class Settings(BaseModel):
             security=os.getenv("SMTP_SECURITY", "starttls"),
             user=os.getenv("SMTP_USER", ""),
             password=os.getenv("SMTP_PASSWORD", ""),
-            from_name=os.getenv("SMTP_FROM_NAME", "금융권 공고 알리미"),
+            from_name=os.getenv("SMTP_FROM_NAME", "Project Searcher"),
         )
         mail = MailCfg(**raw.get("mail", {}))
         # config.yaml 의 목록 + recipients.txt 를 합치고 중복을 제거한다.

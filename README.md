@@ -101,7 +101,23 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 
 ---
 
-## 2-1. 메일에 무엇을 담는가
+## 2-1. 메일 형식
+
+| 항목 | 값 |
+|---|---|
+| 발신자 | `Project Searcher <bjkim@pron.co.kr>` |
+| 제목 | `[프로엔솔루션] 신규 금융 프로젝트 공고 알림 N건` |
+| 본문 | 기관별 그룹 → 공고당 **제목 · 공고번호 · 등록일 · 원문 링크** |
+
+첨부 파일명은 넣지 않습니다. 서식은 메일 클라이언트 호환을 위해
+`<style>` 블록 없이 **인라인 스타일 + table 레이아웃**으로만 작성합니다
+(아웃룩·일부 웹메일이 `<head>` 의 `<style>` 을 제거합니다).
+
+발신자명은 `.env` 의 `SMTP_FROM_NAME`, 제목 접두사는 `config.yaml` 의
+`mail.subject_prefix` 로 바꿉니다. **`.env` 는 git 추적 대상이 아니므로
+발신자명 변경은 서버에서 따로 해야 합니다.**
+
+## 2-2. 메일에 무엇을 담는가
 
 `config.yaml` 의 `mail.attach_pdf` 로 정합니다.
 

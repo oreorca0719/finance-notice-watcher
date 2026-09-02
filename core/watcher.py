@@ -191,7 +191,10 @@ class Watcher:
 
             res.new_notices = pending
             if pending:
-                adapter.enrich(pending)  # type: ignore[attr-defined]
+                # 상세 조회는 첨부 링크를 얻기 위한 것이다.
+                # 첨부를 보내지 않는 설정이면 공고당 1회 요청을 통째로 아낀다.
+                if self.s.mail.attach_pdf:
+                    adapter.enrich(pending)  # type: ignore[attr-defined]
                 by_adapter.append((adapter, pending))
                 fresh_all.extend(pending)
             # 신규가 아닌 것은 즉시 '발송완료'로, 신규는 아래에서 '미발송'으로 기록
