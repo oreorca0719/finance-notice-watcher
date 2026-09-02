@@ -115,6 +115,13 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 | `python run_watch.py --seed` | 현재 목록을 기준선으로 등록 |
 | `python run_watch.py --force-mail` | 최초 실행이어도 즉시 발송 (시연용) |
 | `python run_watch.py --test-mail` | SMTP 점검용 테스트 메일 |
+| `python resend.py --days 1` | 최근 1일 이내 등록 공고를 **다시** 발송 |
+| `python resend.py --days 1 --dry-run` | 재발송 대상만 확인 (발송 없음) |
+| `python resend.py --seq kb:4918,hana:1528508` | 특정 공고만 지정 재발송 |
+
+`resend.py` 는 **상태 파일을 건드리지 않습니다.** 재발송해도 발송 이력이 유지되므로
+다음 정기 실행의 신규 판정에 영향이 없습니다. 서식을 바꿨을 때 새 형식으로 다시
+돌려보거나, 수신자를 추가한 뒤 최근 공고를 공유할 때 씁니다.
 
 ---
 
