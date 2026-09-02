@@ -128,10 +128,19 @@ class SmtpCfg(BaseModel):
     user: str = ""
     password: str = ""
     from_name: str = "Project Searcher"
+    #: 메일에 표시될 발신 주소. 비우면 인증 계정(user)을 그대로 쓴다.
+    #: 개인 주소 노출이 싫으면 noreply@pron.co.kr 같은 공용 주소를 넣는다.
+    #: 단, 메일 서버가 인증 계정과 다른 From 을 허용해야 한다.
+    from_addr: str = ""
 
     @property
     def configured(self) -> bool:
         return bool(self.host and self.user and self.password)
+
+    @property
+    def sender(self) -> str:
+        """From 헤더에 쓸 주소. 지정이 없으면 인증 계정."""
+        return self.from_addr or self.user
 
 
 class Settings(BaseModel):
@@ -155,6 +164,7 @@ class Settings(BaseModel):
             user=os.getenv("SMTP_USER", ""),
             password=os.getenv("SMTP_PASSWORD", ""),
             from_name=os.getenv("SMTP_FROM_NAME", "Project Searcher"),
+            from_addr=os.getenv("SMTP_FROM_ADDR", ""),
         )
         mail = MailCfg(**raw.get("mail", {}))
         # config.yaml 의 목록 + recipients.txt 를 합치고 중복을 제거한다.

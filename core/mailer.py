@@ -54,11 +54,11 @@ class Mailer:
         # EmailMessage 는 기본 정책에서 유니코드를 스스로 인코딩한다.
         # 구형 Header 객체를 넣으면 TypeError 가 나므로 순수 문자열로 넘긴다.
         msg["Subject"] = subj
-        msg["From"] = formataddr((self.cfg.from_name, self.cfg.user))
+        msg["From"] = formataddr((self.cfg.from_name, self.cfg.sender))
         mode = header_mode or self.mode
         if mode == "bcc":
             # To 에는 발신자 자신을 넣고 실제 수신자는 envelope(RCPT TO)로만 전달한다.
-            msg["To"] = self.cfg.user
+            msg["To"] = self.cfg.sender
         else:
             msg["To"] = ", ".join(to)
         msg["Date"] = formatdate(localtime=True)
@@ -204,6 +204,7 @@ class Mailer:
         if c.security.lower() == "ssl":
             with smtplib.SMTP_SSL(c.host, c.port, context=ctx, timeout=30) as s:
                 s.login(c.user, c.password)
+                # envelope 은 인증 계정 유지. 서버가 불일치를 거부하는 경우가 많다.
                 s.send_message(msg, from_addr=c.user, to_addrs=list(to))
             return
         with smtplib.SMTP(c.host, c.port, timeout=30) as s:

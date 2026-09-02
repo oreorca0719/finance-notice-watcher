@@ -129,7 +129,7 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 
 | 항목 | 값 |
 |---|---|
-| 발신자 | `Project Searcher <bjkim@pron.co.kr>` |
+| 발신자 | `PRON Project Searcher <bjkim@pron.co.kr>` |
 | 제목 | `[프로엔솔루션] 신규 금융 프로젝트 공고 알림 N건` |
 | 본문 | 기관별 그룹 → 공고당 **제목 · 공고번호 · 등록일 · 원문 링크** |
 
@@ -138,7 +138,24 @@ powershell -ExecutionPolicy Bypass -File install_task.ps1
 (아웃룩·일부 웹메일이 `<head>` 의 `<style>` 을 제거합니다).
 
 발신자명은 `.env` 의 `SMTP_FROM_NAME`, 제목 접두사는 `config.yaml` 의
-`mail.subject_prefix` 로 바꿉니다. **`.env` 는 git 추적 대상이 아니므로
+`mail.subject_prefix` 로 바꿉니다.
+
+### 발신 주소를 바꾸려면
+
+메일 표준상 `From` 은 `표시명 <주소>` 형태이고 **주소는 반드시 포함됩니다.**
+숨길 수는 없고, 어떤 주소를 보일지만 정할 수 있습니다.
+
+```
+SMTP_FROM_ADDR=noreply@pron.co.kr
+```
+
+비워두면 인증 계정(`SMTP_USER`)이 그대로 노출됩니다. 개인 주소를 감추려면
+공용 주소를 발급받아 위 값에 넣으십시오.
+
+> **주의**: 메일 서버가 인증 계정과 다른 `From` 을 허용해야 합니다.
+> 후이즈웍스가 거부하면 발송이 실패하므로, 설정 후 반드시
+> `python run_watch.py --test-mail` 로 확인하고 실패 시 값을 비우십시오.
+> 인증 계정과 다른 주소로 보내면 SPF/DMARC 정책에 따라 스팸 처리될 수도 있습니다. **`.env` 는 git 추적 대상이 아니므로
 발신자명 변경은 서버에서 따로 해야 합니다.**
 
 ## 2-2. 메일에 무엇을 담는가
