@@ -187,6 +187,14 @@ SMTP_FROM_ADDR=noreply@pron.co.kr
 | `woorifg` | 우리금융그룹 | `woorifg` | GET (HWP) — 구형 TLS |
 | `woorisb` | 우리금융저축은행 | `simpleboard` | 파일명만 (경로 확정 불가) |
 | `shinhanfund` | 신한자산운용 | `simpleboard` | GET |
+| `ksfc` | 한국증권금융 | `ksfc` | 목록만 |
+| `ksfcpress` | 한국증권금융 보도자료 | `ksfc` | 목록만 — 기본 `enabled: false` |
+| `ibksystem` | IBK시스템 | `ibksystem` | 목록만 |
+| `koscom` | 코스콤 | `koscom` | 목록만 |
+| `woorifis` | 우리에프아이에스 | `woorifis` | 목록만 |
+| `kbfg` | KB금융지주 | `kbfg` | 목록만 — 목록 API(JSON) |
+| `wooribank` | 우리은행 | `wooribank` | 목록만 — 목록 POST(JSON) |
+| `hanati` | 하나금융TI | `hanati` | 목록만 — 로그인 화면 노출분만 |
 
 **기관 추가 방법**
 
@@ -205,7 +213,14 @@ SMTP_FROM_ADDR=noreply@pron.co.kr
   `params.attachments: false` 로 두어 **파일명만 메일에 표시**하고 다운로드는 건너뜁니다.
 - **신한자산운용**: 페이징 파라미터가 동작하지 않아 `list_pages: 1` 입니다.
   게시판 대부분이 펀드 위탁운용사 공고라 IT 건은 드뭅니다.
-- **skip_require**: 게시판 자체가 입찰공고 전용인 기관(농협 계열)은 1단계 게이트를 건너뜁니다.
+- **한국증권금융**: 상세는 목록에서 `goView()` 로 열지만 `view.do?ntatSno=번호` GET 으로도 열립니다.
+  공지사항 게시판에 채용·금리 안내가 섞여 있어 필터가 대부분 걸러냅니다. 보도자료는 공고가 아니라 기본으로 꺼 두었습니다.
+- **KB금융지주**: 목록 페이지에는 공고가 없고 `/api/kbfg/notics` 가 JSON 으로 줍니다. 한 번에 20건이라 `list_pages: 1` 입니다.
+- **우리은행**: 목록을 POST 로 받습니다(`/pot/jcc?...&__ID=c064827`, `START_NO`=페이지).
+  세션 쿠키가 필요해 목록 페이지를 먼저 열고 POST 합니다. **상세가 POST 전용이라 메일 링크는 목록 페이지로 갑니다.**
+- **하나금융TI**: 입찰공지 전체 목록·상세는 로그인이 필요하고, 비로그인 POST 는 403 입니다.
+  로그인 화면에 노출되는 **최근 몇 건만** 감시합니다. 하루에 그보다 많이 올라오면 놓칠 수 있고, 메일 링크는 로그인 화면으로 갑니다.
+- **skip_require**: 게시판 자체가 입찰공고 전용인 기관(농협 계열, 코스콤, 우리에프아이에스)은 1단계 게이트를 건너뜁니다.
 
 ## 3-1. 무엇을 "프로젝트 공고"로 보는가
 
@@ -217,7 +232,8 @@ SMTP_FROM_ADDR=noreply@pron.co.kr
 | 2. `exclude_keywords` | 비IT·비금융 단어가 하나라도 있으면 탈락 |
 | 3. `include_keywords` | IT/SI 단어가 하나라도 있으면 통과 |
 
-9개 기관 실제 공고 220건으로 검증한 결과 **83건 통과** 입니다.
+9개 기관 실제 공고 220건으로 검증한 결과 **83건 통과** 였고,
+2026-09 기준 16개 기관 실제 공고로 재검증했습니다.
 
 | | 예시 |
 |---|---|

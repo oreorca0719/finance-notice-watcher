@@ -130,6 +130,123 @@ sources:
     timeout: 30
     warm_path: "/index.jsp"
 
+
+  # ─── 2026-09 추가 (증권·IT 자회사·지주) ───────────────────────────
+  - id: ksfc
+    name: 한국증권금융
+    adapter: ksfc
+    base: "https://www.ksfc.co.kr:4443"
+    enabled: true
+    list_pages: 2          # 1페이지=10건
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/customer/notice/list.do"
+    params:
+      list_path: "/customer/notice/list.do"
+      view_path: "/customer/notice/view.do"
+      attachments: false   # 목록만 사용
+
+  - id: ksfcpress
+    name: 한국증권금융 보도자료
+    adapter: ksfc
+    base: "https://www.ksfc.co.kr:4443"
+    enabled: false         # 보도자료는 공고가 아니라 기본으로 꺼 둔다. 필요하면 true
+    list_pages: 1
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/finance/pr/press/list.do"
+    params:
+      list_path: "/finance/pr/press/list.do"
+      view_path: "/finance/pr/press/view.do"
+      attachments: false
+
+  - id: ibksystem
+    name: IBK시스템
+    adapter: ibksystem
+    base: "https://www.ibksystem.co.kr"
+    enabled: true
+    list_pages: 2          # 1페이지=15건
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/board?brdId=BRD002"
+    params:
+      board_id: "BRD002"   # 입찰공고 게시판
+      attachments: false
+
+  - id: koscom
+    name: 코스콤
+    adapter: koscom
+    base: "https://www.koscom.co.kr"
+    enabled: true
+    list_pages: 2          # 1페이지=10건
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/portal/bbs/B0000002/list.do?menuNo=200264"
+    skip_require: true     # 입찰공고 전용 게시판
+    params:
+      list_path: "/portal/bbs/B0000002/list.do"
+      view_path: "/portal/bbs/B0000002/view.do"
+      menu_no: "200264"
+      attachments: false
+
+  - id: woorifis
+    name: 우리에프아이에스
+    adapter: woorifis
+    base: "https://www.woorifis.com"
+    enabled: true
+    list_pages: 2          # 1페이지=10건
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/kor/company/announceList"
+    skip_require: true     # 사업공고 전용 게시판
+    params:
+      list_path: "/kor/company/announceList"
+      view_path: "/kor/company/announceDetail?boardId="
+      attachments: false
+
+  - id: kbfg
+    name: KB금융지주
+    adapter: kbfg
+    base: "https://www.kbfg.com"
+    enabled: true
+    list_pages: 1          # 목록 API 가 한 번에 20건을 준다
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/kor/pr/notice/list.htm"
+    params:
+      board_id: "9"        # 공지사항 게시판
+      page_size: "20"
+      view_path: "/kor/pr/notice/view.htm"
+      attachments: false
+
+  - id: wooribank
+    name: 우리은행
+    adapter: wooribank
+    base: "https://spot.wooribank.com"
+    enabled: true
+    list_pages: 2          # 1페이지=10건. 목록을 POST 로 받는다
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/pot/Dream?withyou=BPPBC0038"
+    params:
+      list_path: "/pot/Dream?withyou=BPPBC0038"
+      api_path: "/pot/jcc?withyou=BPPBC0038&__ID=c064827"
+      board_id: "B00072"
+      attachments: false
+
+  - id: hanati
+    name: 하나금융TI
+    adapter: hanati
+    base: "https://tipartner.hanati.co.kr"
+    enabled: true
+    list_pages: 1          # 로그인 화면에 보이는 최근 입찰공지 몇 건만 감시된다
+    request_delay: 0.8
+    timeout: 30
+    warm_path: "/spLogin.do"
+    params:
+      list_path: "/spLogin.do"
+      attachments: false
+
 filter:
   # 판별 순서: exclude 에 하나라도 걸리면 즉시 탈락 → 그다음 include 중 하나라도 있으면 통과.
   # include_keywords 를 비우면 필터가 해제되어 전체 공고가 발송됩니다.
