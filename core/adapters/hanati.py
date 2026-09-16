@@ -74,10 +74,13 @@ class HanaTiAdapter(BaseAdapter):
             items, _, used = self.parse_list(body)
             self.parser_used = used
             if not items:
-                raise RuntimeError(
-                    f"{self.spec.name} {page}페이지에서 입찰공지를 하나도 파싱하지 못했습니다. "
-                    f"팝업 구조 변경이 의심됩니다."
-                )
+                # 마지막 페이지를 지나면 빈 목록이 온다. 1페이지가 비었을 때만 이상으로 본다.
+                if page == 1:
+                    raise RuntimeError(
+                        f"{self.spec.name} 1페이지에서 입찰공지를 하나도 파싱하지 못했습니다. "
+                        f"목록 구조 변경이 의심됩니다."
+                    )
+                break
             for n in items:
                 n.source_id = self.spec.id
                 n.source_name = self.spec.name

@@ -239,7 +239,7 @@ sources:
     adapter: hanati
     base: "https://tipartner.hanati.co.kr"
     enabled: true
-    list_pages: 2          # 1페이지=10건. 팝업 목록을 POST 로 받는다
+    list_pages: 5          # 1페이지=10건. 현재 게시판 전체가 46건(5페이지)이다
     request_delay: 0.8
     timeout: 30
     warm_path: "/spLogin.do"

@@ -57,10 +57,13 @@ class WooriBankAdapter(BaseAdapter):
             self.parser_used = used
             total = total or tot
             if not items:
-                raise RuntimeError(
-                    f"{self.spec.name} {page}페이지에서 공고를 하나도 받지 못했습니다. "
-                    f"목록 조회 방식이 바뀌었을 수 있습니다."
-                )
+                # 마지막 페이지를 지나면 빈 목록이 온다. 1페이지가 비었을 때만 이상으로 본다.
+                if page == 1:
+                    raise RuntimeError(
+                        f"{self.spec.name} 1페이지에서 공고를 하나도 파싱하지 못했습니다. "
+                        f"목록 구조 변경이 의심됩니다."
+                    )
+                break
             for n in items:
                 n.source_id = self.spec.id
                 n.source_name = self.spec.name
