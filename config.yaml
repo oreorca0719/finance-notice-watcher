@@ -239,12 +239,13 @@ sources:
     adapter: hanati
     base: "https://tipartner.hanati.co.kr"
     enabled: true
-    list_pages: 1          # 로그인 화면에 보이는 최근 입찰공지 몇 건만 감시된다
+    list_pages: 2          # 1페이지=10건. 팝업 목록을 POST 로 받는다
     request_delay: 0.8
     timeout: 30
     warm_path: "/spLogin.do"
     params:
-      list_path: "/spLogin.do"
+      home_path: "/spLogin.do"                       # 세션 쿠키·CSRF 토큰을 얻는 화면
+      list_path: "/sp/mn/bidding/bidNoticeLink.do"   # 입찰공지 팝업 (POST)
       attachments: false
 
 filter:
