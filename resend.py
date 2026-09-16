@@ -6,6 +6,7 @@
   python resend.py --days 1                 # 최근 1일 이내 등록 공고 재발송
   python resend.py --days 3 --dry-run       # 발송 없이 대상만 확인
   python resend.py --seq kb:4918,hana:1528508   # 특정 공고만 지정 발송
+  python resend.py --source hanati,kbfg --days 30   # 특정 기관만 (신규 기관 검증용)
 
 **상태 파일을 건드리지 않는다.** 재발송해도 '발송 완료' 이력은 그대로이므로
 다음 정기 실행의 신규 판정에 영향을 주지 않는다.
@@ -32,6 +33,8 @@ def main() -> int:
                     help="오늘 기준 N일 이내에 '등록된' 공고를 대상으로 한다 (기본 1)")
     ap.add_argument("--seq", type=str, default="",
                     help="특정 공고만: 'kb:4918,hana:1528508' 형식")
+    ap.add_argument("--source", type=str, default="",
+                    help="기관 id 만 골라서: 'hanati,kbfg' 형식. 생략하면 전체 기관")
     ap.add_argument("--dry-run", action="store_true", help="발송하지 않고 대상만 출력")
     ap.add_argument("--to", type=str, default="",
                     help="수신자 직접 지정(쉼표 구분). 생략하면 recipients 전원")
@@ -49,9 +52,19 @@ def main() -> int:
         if num.isdigit():
             wanted.add((sid, int(num)))
 
+    only = {x.strip() for x in args.source.split(",") if x.strip()}
+    if only:
+        known = {spec.id for spec in s.active_sources}
+        unknown = only - known
+        if unknown:
+            log.warning("--source 에 없는 기관 id: %s (사용 가능: %s)",
+                        ", ".join(sorted(unknown)), ", ".join(sorted(known)))
+
     cutoff = date.today() - timedelta(days=args.days)
     picked = []
     for spec in s.active_sources:
+        if only and spec.id not in only:
+            continue
         # 특정 공고 지정 시 해당 기관만 조회해 불필요한 요청을 줄인다.
         if wanted and not any(sid == spec.id for sid, _ in wanted):
             continue
